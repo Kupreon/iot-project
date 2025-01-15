@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gate Control</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 200px;
+            margin: 20px 0;
+        }
+        button:disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        td {
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gate Control System</h1>
+        
+        <!-- Lock/Unlock Button -->
+        <button id="lockUnlockButton">Loading...</button>
+        
+        <!-- Gate Logs Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Gate State</th>
+                    <th>Operated By</th>
+                </tr>
+            </thead>
+            <tbody id="gateLogsTable">
+                <tr><td colspan="3">Loading logs...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
+        import { getDatabase, ref, get, set, onValue } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js';
+
+        // Firebase configuration (replace with your Firebase project configuration)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBAFMGDMNSf96CR1wsAnXFnP5UlmDyQxfo",
+            authDomain: "iot-doorlock-c2ad3.firebaseapp.com",
+            databaseURL: "https://iot-doorlock-c2ad3-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "iot-doorlock-c2ad3",
+            storageBucket: "iot-doorlock-c2ad3.firebasestorage.app",
+            messagingSenderId: "482654956594",
+            appId: "1:482654956594:web:9d45b41c8fa2763c52a02b",
+            measurementId: "G-QQK1VY2YTN"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const isOpenRef = ref(db, '/isOpen');
+        const gateLogsRef = ref(db, '/gateLogs');
+
+        const lockUnlockButton = document.getElementById('lockUnlockButton');
+        const gateLogsTable = document.getElementById('gateLogsTable');
+
+        // Fetch the current state of the gate (isOpen)
+        function fetchGateState() {
+            get(isOpenRef).then(snapshot => {
+                const isOpen = snapshot.val();
+                updateButton(isOpen);
+            }).catch(error => {
+                console.error("Error fetching gate state:", error);
+            });
+        }
+
+        // Update button text and color based on gate state
+        function updateButton(isOpen) {
+            if (isOpen) {
+                lockUnlockButton.textContent = "Lock";
+                lockUnlockButton.style.backgroundColor = "#4CAF50";  // Green for "Lock"
+            } else {
+                lockUnlockButton.textContent = "Unlock";
+                lockUnlockButton.style.backgroundColor = "#F44336";  // Red for "Unlock"
+            }
+        }
+
+        // Change the gate state (lock/unlock)
+        function changeGateState(isOpen) {
+            set(isOpenRef, !isOpen).catch(error => {
+                console.error("Error changing gate state:", error);
+            });
+        }
+
+        // Fetch and display gate logs
+        function fetchGateLogs() {
+            get(gateLogsRef).then(snapshot => {
+                const logs = snapshot.val();
+                let rows = '';
+                for (const key in logs) {
+                    const log = logs[key];
+                    rows += `<tr>
+                                <td>${log.split(' - ')[0]}</td>
+                                <td>${log.split(' - ')[1].split(':')[1].trim()}</td>
+                                <td>${log.split(' - ')[2].split(':')[1].trim()}</td>
+                            </tr>`;
+                }
+                gateLogsTable.innerHTML = rows || '<tr><td colspan="3">No logs available</td></tr>';
+            }).catch(error => {
+                console.error("Error fetching gate logs:", error);
+            });
+        }
+
+        // Listen for changes to the gate state (isOpen)
+        onValue(isOpenRef, snapshot => {
+            const isOpen = snapshot.val();
+            updateButton(isOpen); // Update the button text and color when the state changes
+        });
+
+        // Listen for changes to the gate logs
+        onValue(gateLogsRef, snapshot => {
+            const logs = snapshot.val();
+            let rows = '';
+            for (const key in logs) {
+                const log = logs[key];
+                rows += `<tr>
+                            <td>${log.split(' - ')[0]}</td>
+                            <td>${log.split(' - ')[1].split(':')[1].trim()}</td>
+                            <td>${log.split(' - ')[2].split(':')[1].trim()}</td>
+                        </tr>`;
+            }
+            gateLogsTable.innerHTML = rows || '<tr><td colspan="3">No logs available</td></tr>';
+        });
+
+        // Button click handler
+        lockUnlockButton.addEventListener('click', () => {
+            get(isOpenRef).then(snapshot => {
+                const isOpen = snapshot.val();
+                changeGateState(isOpen);
+            }).catch(error => {
+                console.error("Error handling button click:", error);
+            });
+        });
+
+        // Initial data load
+        fetchGateState();
+        fetchGateLogs();
+    </script>
+</body>
+</html>
