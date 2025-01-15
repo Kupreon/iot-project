@@ -48,5 +48,6 @@
 /* Test Mode (No Authentication) */
 #define REFERENCE_URL "https://iot-doorlock-c2ad3-default-rtdb.europe-west1.firebasedatabase.app/"
 
+
 /* Uncomment the following line for Locked Mode (With Authentication) */
 // #define AUTH_TOKEN "6RfPbl8ErRUfmh2w4sXadUEo4QWJu74wr14dHfhw"
