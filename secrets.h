@@ -46,7 +46,7 @@
 */
 
 /* Test Mode (No Authentication) */
-#define REFERENCE_URL "https://iot-doorlock-c2ad3-default-rtdb.europe-west1.firebasedatabase.app/"
+#define REFERENCE_URL "firebase-url"
 
 
 /* Uncomment the following line for Locked Mode (With Authentication) */
