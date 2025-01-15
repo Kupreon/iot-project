@@ -4,8 +4,8 @@
 
 */
 
-#define WIFI_SSID     "GalaxyA525G"
-#define WIFI_PASSWORD "rzqg8332"
+#define WIFI_SSID     "wifi-name"
+#define WIFI_PASSWORD "wifi-password"
 
 /*
 
